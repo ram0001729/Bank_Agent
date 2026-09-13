@@ -24,6 +24,7 @@ allow {
     not input.emergency_stop_active
     input.action in role_permissions[input.role]
     input.risk_score <= max_risk_threshold
+    input.amount <= input.agent_budget_limit
     amount_within_limits
 }
 

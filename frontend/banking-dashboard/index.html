@@ -6,6 +6,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Banking Agent Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body,
+      body * {
+        filter: grayscale(1);
+      }
+
+      .emergency-stop-button,
+      .emergency-stop-button * {
+        filter: none;
+      }
+
+      body {
+        background: #fff;
+        color: #000;
+      }
+
+      body,
+      body * {
+        background-color: #fff !important;
+        color: #000 !important;
+        border-color: #000 !important;
+      }
+
+      .emergency-stop-button,
+      .emergency-stop-button * {
+        background-color: #fecaca !important;
+        color: #000 !important;
+        border-color: #f87171 !important;
+      }
+    </style>
   </head>
   <body class="bg-slate-900 text-slate-100 min-h-screen">
     <div id="root"></div>

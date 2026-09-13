@@ -61,7 +61,6 @@ export default function App() {
             <div className="bg-indigo-600 p-2 rounded-lg font-black text-xl text-white">AG</div>
             <div>
               <h1 className="font-bold text-slate-100 text-lg leading-tight">AI Banking Agent Platform</h1>
-              <p className="text-xs text-slate-400">Autonomous Multi-Agent & Fraud Governance OS</p>
             </div>
           </div>
 
@@ -70,10 +69,10 @@ export default function App() {
             <button
               onClick={handleToggleEmergencyStop}
               disabled={loadingStop}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-lg border ${
+              className={`emergency-stop-button flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-lg border ${
                 isStopped
                   ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 animate-bounce'
-                  : 'bg-rose-600 hover:bg-rose-500 text-white border-rose-500 hover:shadow-rose-500/20'
+                  : 'bg-rose-300 hover:bg-rose-400 text-rose-950 border-rose-400 hover:shadow-rose-400/20'
               }`}
             >
               <span className="h-2.5 w-2.5 rounded-full bg-white animate-ping"></span>

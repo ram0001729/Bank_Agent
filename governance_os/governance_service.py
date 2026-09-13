@@ -9,7 +9,8 @@ from governance_os.emergency_control.revocation_store import RevocationStore
 
 
 class GovernanceOSService:
-    def __init__(self):
+    def __init__(self, db=None):
+        self.db = db
         self.registry = AgentIdentityRegistry()
         self.permission_manager = PermissionManager()
         self.policy_engine = PolicyEngine()
@@ -42,14 +43,14 @@ class GovernanceOSService:
             }
 
         # 3. Agent Identity Verification
-        if not self.registry.verify_agent(agent_name):
+        if not self.registry.verify_agent(agent_name, db=self.db):
             return {
                 "allowed": False,
                 "reason": f"UNREGISTERED_AGENT: Agent '{agent_name}' not registered in Identity Registry.",
                 "explanation": "Agent cryptographic identity verification failed."
             }
 
-        agent_meta = self.registry.get_agent_metadata(agent_name)
+        agent_meta = self.registry.get_agent_metadata(agent_name, db=self.db)
 
         # 4. Permission Manager Check (Granular RBAC/ABAC Permissions)
         if not self.permission_manager.check_permission(agent_meta.get("role", ""), action):
@@ -60,7 +61,13 @@ class GovernanceOSService:
             }
 
         # 5. Policy Engine Check (OPA Rego Rules)
-        allowed_policy, policy_reason = self.policy_engine.evaluate_policy(action, amount, risk_score, role=agent_meta.get("role", "supervisor"))
+        allowed_policy, policy_reason = self.policy_engine.evaluate_policy(
+            action,
+            amount,
+            risk_score,
+            role=agent_meta.get("role", "supervisor"),
+            agent_budget_limit=agent_meta.get("daily_budget_limit", 10000.0),
+        )
         if not allowed_policy:
             explanation = self.explanation_engine.generate_explanation(action, False, policy_reason, risk_score)
             return {

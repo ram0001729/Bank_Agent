@@ -1,17 +1,24 @@
+import hashlib
+import secrets
 import uuid
+from decimal import Decimal
+from typing import List, Optional, Dict, Any, Literal
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from sqlalchemy.exc import IntegrityError
+from pydantic import BaseModel, Field, validator
 
 from backend.database.connection import get_db
 from backend.database.models.audit import AuditLog
+from backend.database.models.agent import Agent
 from backend.database.models.transaction import Transaction
 
 from agents.supervisor_agent.workflow import SupervisorAgentWorkflow
 from agents.common.schemas import AgentRequest
 from governance_os.emergency_control.emergency_stop import EmergencyStopSwitch
 from governance_os.agent_registry.agent_identity import AgentIdentityRegistry
+from governance_os.governance_service import GovernanceOSService
 from mcp.verification_layer.verification_models import VerificationRequest
 from mcp.verification_layer.mcp_verifier import MCPServerVerifier
 from mcp.servers.transaction_mcp.transaction_server import TransactionMCPServer
@@ -35,12 +42,26 @@ class AgentStatus(BaseModel):
     status: str
     model: str
     requests_processed: int
+    daily_budget_limit: float
 
 
 class RegisterAgentRequest(BaseModel):
-    agent_name: str
-    role: str  # supervisor, fraud_evaluator, loan_underwriter, refund_processor, support_assistant
-    daily_budget_limit: Optional[float] = 10000.0
+    agent_name: str = Field(..., min_length=3, max_length=100)
+    role: Literal[
+        "supervisor",
+        "fraud_evaluator",
+        "loan_underwriter",
+        "refund_processor",
+        "support_assistant",
+    ]
+    daily_budget_limit: Decimal = Field(default=Decimal("10000.00"), gt=0, le=Decimal("1000000.00"))
+
+    @validator("agent_name")
+    def validate_agent_name(cls, value: str) -> str:
+        normalized = " ".join(value.split())
+        if not normalized.replace(" ", "").replace("-", "").replace("_", "").isalnum():
+            raise ValueError("agent_name may contain only letters, numbers, spaces, hyphens, and underscores")
+        return normalized
 
 
 class AgentPaymentRequest(BaseModel):
@@ -75,38 +96,62 @@ class ChatResponse(BaseModel):
 
 
 @router.get("/status", response_model=List[AgentStatus])
-def get_agents_status():
+def get_agents_status(db: Session = Depends(get_db)):
     is_stopped = _EMERGENCY_STOP.is_stopped
     status_label = "Emergency Stopped" if is_stopped else "Active"
-    registered = _REGISTRY.registered_agents
+    registered = db.query(Agent).order_by(Agent.created_at.asc()).all()
     return [
         {
-            "name": name,
-            "role": meta["role"],
-            "status": status_label if meta["status"] == "ACTIVE" else "Inactive",
+            "name": agent.agent_name,
+            "role": agent.role,
+            "status": status_label if agent.status == "ACTIVE" else agent.status.title(),
             "model": "XGBoost + Governance OS",
-            "requests_processed": 50
+            "requests_processed": 50,
+            "daily_budget_limit": float(agent.daily_budget_limit),
         }
-        for name, meta in registered.items()
+        for agent in registered
     ]
 
 
-@router.post("/register")
-def register_ai_agent(request: RegisterAgentRequest):
+@router.post("/register", status_code=201)
+def register_ai_agent(request: RegisterAgentRequest, db: Session = Depends(get_db)):
     """Register an external AI Agent on our Governance Platform."""
-    agent_id = f"agent-ext-{uuid.uuid4().hex[:6]}"
-    _REGISTRY.registered_agents[request.agent_name] = {
-        "id": agent_id,
-        "role": request.role,
-        "status": "ACTIVE",
-        "secret_hash": f"hash-{agent_id}"
+    if db.query(Agent).filter(Agent.agent_name == request.agent_name).first() is not None:
+        raise HTTPException(status_code=409, detail="An agent with this name is already registered")
+
+    agent_id = f"agent-ext-{uuid.uuid4().hex}"
+    api_key = f"ba_{secrets.token_urlsafe(32)}"
+    agent = Agent(
+        agent_id=agent_id,
+        agent_name=request.agent_name,
+        role=request.role,
+        status="ACTIVE",
+        daily_budget_limit=request.daily_budget_limit,
+        secret_hash=hashlib.sha256(api_key.encode("utf-8")).hexdigest(),
+    )
+    db.add(agent)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="An agent with this name is already registered")
+
+    db.refresh(agent)
+    _REGISTRY.registered_agents[agent.agent_name] = {
+        "id": agent.agent_id,
+        "role": agent.role,
+        "status": agent.status,
+        "secret_hash": agent.secret_hash,
+        "daily_budget_limit": float(agent.daily_budget_limit),
     }
     return {
         "status": "SUCCESS",
         "agent_id": agent_id,
         "agent_name": request.agent_name,
         "role": request.role,
-        "message": f"AI Agent '{request.agent_name}' successfully registered on Governance OS Platform."
+        "daily_budget_limit": float(request.daily_budget_limit),
+        "api_key": api_key,
+        "message": "Agent registered. Store the API key securely; it will not be shown again.",
     }
 
 
@@ -150,7 +195,32 @@ def process_agent_payment_request(request: AgentPaymentRequest, db: Session = De
     risk_score = fraud_eval.data.get("risk_score", 0.0) if fraud_eval.data else 0.0
     is_fraud = risk_score >= 0.50
 
-    # 3 & 4. Governance OS & 2-Stage MCP Verification Layer
+    # 3. Governance OS policy, identity, role, emergency, and budget checks
+    governance = GovernanceOSService(db)
+    governance_result = governance.evaluate_governance(
+        agent_name=request.agent_name,
+        action="TRANSFER",
+        amount=request.amount,
+        risk_score=risk_score,
+    )
+    if not governance_result["allowed"]:
+        audit = AuditLog(
+            agent_id=request.agent_name,
+            action="PAYMENT_DENIED",
+            status="DENIED",
+            details=f"Governance denied payment: {governance_result['reason']}",
+        )
+        db.add(audit)
+        db.commit()
+        return AgentPaymentResponse(
+            payment_status="DENIED",
+            risk_score=risk_score,
+            is_fraud=is_fraud,
+            agent_name=request.agent_name,
+            governance_explanation=governance_result["explanation"],
+        )
+
+    # 4. MCP verification layer
     ver_req = VerificationRequest(
         agent_id=request.agent_name,
         mcp_server="TransactionMCPServer",

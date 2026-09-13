@@ -8,6 +8,7 @@ from backend.database.models.customer import Customer
 from backend.database.models.transaction import Transaction
 from backend.database.models.loan import Loan
 from backend.database.models.audit import AuditLog
+from backend.database.models.agent import Agent
 
 from backend.api_gateway.middleware.logging import LoggingMiddleware
 from backend.api_gateway.routes import auth, customer, transactions, agents
@@ -54,6 +55,25 @@ def startup_event():
     # Seed initial demo data if empty
     db: Session = SessionLocal()
     try:
+        built_in_agents = [
+            ("Supervisor Agent", "supervisor"),
+            ("Fraud Agent", "fraud_evaluator"),
+            ("Loan Agent", "loan_underwriter"),
+            ("Refund Agent", "refund_processor"),
+            ("Support Agent", "support_assistant"),
+        ]
+        for agent_name, role in built_in_agents:
+            if db.query(Agent).filter(Agent.agent_name == agent_name).first() is None:
+                db.add(Agent(
+                    agent_id=f"agent-system-{agent_name.lower().replace(' ', '-')}",
+                    agent_name=agent_name,
+                    role=role,
+                    status="ACTIVE",
+                    daily_budget_limit=10000.00,
+                    secret_hash="system-managed",
+                ))
+        db.commit()
+
         if db.query(Customer).count() == 0:
             c1 = Customer(name="Alice Johnson", email="alice@example.com", account_number="ACC-100982", balance=14250.50, risk_level="low")
             c2 = Customer(name="Bob Smith", email="bob@example.com", account_number="ACC-882104", balance=3410.00, risk_level="medium")

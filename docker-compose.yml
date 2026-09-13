@@ -1,4 +1,13 @@
 services:
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: banking_agent_opa
+    command: ["run", "--server", "/policies"]
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./governance_os/policy_engine/authorization:/policies:ro
+
   prometheus:
     image: prom/prometheus:latest
     container_name: banking_agent_prometheus

@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 
 frontend/banking-dashboard/node_modules/
+frontend/banking-dashboard/dist/
 
 logs/*
 !logs/.gitkeep

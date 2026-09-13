@@ -14,6 +14,7 @@ class OPAClient:
         action: str,
         amount: float,
         risk_score: float,
+        agent_budget_limit: float = 10000.0,
         emergency_stop_active: bool = False
     ) -> Tuple[bool, str]:
         input_payload = {
@@ -22,6 +23,7 @@ class OPAClient:
                 "action": action,
                 "amount": amount,
                 "risk_score": risk_score,
+                "agent_budget_limit": agent_budget_limit,
                 "emergency_stop_active": emergency_stop_active
             }
         }
@@ -39,6 +41,9 @@ class OPAClient:
         # 2. Local Rego Engine Evaluation matching agent_authz.rego
         if emergency_stop_active:
             return False, "OPA Rego Evaluation: DENIED (emergency_stop_active is True)"
+
+        if amount > agent_budget_limit:
+            return False, f"OPA Rego Evaluation: DENIED (Amount ${amount:.2f} exceeds agent daily budget ${agent_budget_limit:.2f})"
 
         role_permissions = {
             "supervisor": ["TRANSFER", "LOAN_APPROVAL", "REFUND", "POLICY_QUERY", "RISK_CHECK"],

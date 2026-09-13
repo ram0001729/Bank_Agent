@@ -6,6 +6,7 @@ export const CustomerPortal = () => {
   // Agent Registration State
   const [regName, setRegName] = useState('Payment Agent Alpha');
   const [regRole, setRegRole] = useState('supervisor');
+  const [regBudget, setRegBudget] = useState('10000');
   const [regMsg, setRegMsg] = useState(null);
 
   // Agent Payment Request State
@@ -19,7 +20,7 @@ export const CustomerPortal = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.registerAgent(regName, regRole);
+      const res = await api.registerAgent(regName, regRole, parseFloat(regBudget) || 0);
       setRegMsg(res);
     } catch (e) {
       setRegMsg({ status: 'ERROR', message: 'Agent registration failed' });
@@ -100,6 +101,19 @@ export const CustomerPortal = () => {
               </select>
             </div>
 
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Daily Budget Limit</label>
+              <input
+                type="number"
+                min="0.01"
+                max="1000000"
+                step="0.01"
+                value={regBudget}
+                onChange={(e) => setRegBudget(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
             <button
               type="submit"
               className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 rounded-lg text-sm transition"
@@ -111,6 +125,11 @@ export const CustomerPortal = () => {
           {regMsg && (
             <div className="mt-4 p-3 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs">
               <strong>{regMsg.message}</strong> (ID: {regMsg.agent_id})
+              {regMsg.api_key && (
+                <div className="mt-2 break-all">
+                  <strong>API key (store securely):</strong> {regMsg.api_key}
+                </div>
+              )}
             </div>
           )}
         </div>

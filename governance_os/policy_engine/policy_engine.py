@@ -12,11 +12,13 @@ class PolicyEngine:
         action: str,
         amount: float,
         risk_score: float,
-        role: str = "supervisor"
+        role: str = "supervisor",
+        agent_budget_limit: float = 10000.0,
     ) -> Tuple[bool, str]:
         return self.opa_client.evaluate_rego_policy(
             role=role,
             action=action,
             amount=amount,
-            risk_score=risk_score
+            risk_score=risk_score,
+            agent_budget_limit=agent_budget_limit,
         )
