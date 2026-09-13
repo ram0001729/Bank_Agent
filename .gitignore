@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+
+frontend/banking-dashboard/node_modules/
+
+logs/*
+!logs/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+
+ml/artifacts/
+ml/models/
+mlruns/
+mlflow.db
