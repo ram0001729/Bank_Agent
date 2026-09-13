@@ -1,0 +1,6 @@
+{
+  "max_transfer_amount": 5000.0,
+  "max_refund_amount": 500.0,
+  "max_loan_amount": 50000.0,
+  "max_risk_threshold": 0.70
+}

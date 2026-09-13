@@ -1,0 +1,89 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Total API Gateway HTTP Requests",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(http_requests_total)",
+          "legendFormat": "HTTP Requests"
+        }
+      ]
+    },
+    {
+      "title": "Agent Executions by Agent Name",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(agent_executions_total) by (agent_name)",
+          "legendFormat": "{{agent_name}}"
+        }
+      ]
+    },
+    {
+      "title": "Governance OS Action Denials",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(governance_denials_total)",
+          "legendFormat": "Denials"
+        }
+      ]
+    },
+    {
+      "title": "ML Fraud Detections (XGBoost)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(fraud_detections_total)",
+          "legendFormat": "Fraud Detected"
+        }
+      ]
+    },
+    {
+      "title": "Request Latency Distribution (Seconds)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "targets": [
+        {
+          "expr": "rate(request_latency_seconds_sum[1m]) / rate(request_latency_seconds_count[1m])",
+          "legendFormat": "Avg Latency"
+        }
+      ]
+    },
+    {
+      "title": "HTTP Traffic Rate per Status Code",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[1m])",
+          "legendFormat": "Status {{status}}"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["banking", "ai_agent", "governance"],
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "title": "AI Banking Agent Platform - Governance & Telemetry",
+  "uid": "ai_banking_governance"
+}

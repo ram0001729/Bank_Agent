@@ -1,0 +1,132 @@
+[33mcommit c711fbbdffa849abe49a3dfea306fcee46057c8a[m
+Author: ramcharan <mekalaramcharan21@gmail.com>
+Date:   Mon Aug 24 01:00:18 2026 +0530
+
+    first model completed
+
+ .env.example                                       |      0
+ .gitignore                                         |      0
+ Makefile                                           |      0
+ agents/common/agent_base.py                        |      0
+ agents/common/messages.py                          |      0
+ agents/common/state.py                             |      0
+ agents/fraud_agent/agent.py                        |      0
+ agents/fraud_agent/fraud_rules.py                  |      0
+ agents/fraud_agent/risk_predictor.py               |      0
+ agents/loan_agent/agent.py                         |      0
+ agents/loan_agent/memory.py                        |      0
+ agents/loan_agent/prompts.py                       |      0
+ agents/loan_agent/tools.py                         |      0
+ agents/supervisor_agent/intent_classifier.py       |      0
+ agents/supervisor_agent/router.py                  |      0
+ agents/supervisor_agent/workflow.py                |      0
+ app_logging/__pycache__/__init__.cpython-314.pyc   |    Bin [31m0[m -> [32m189[m bytes
+ app_logging/agent_logger.py                        |      0
+ app_logging/app_logger.py                          |      0
+ app_logging/audit_logger.py                        |      0
+ app_logging/logger_config.py                       |      0
+ app_logging/mcp_logger.py                          |      0
+ app_logging/ml_logger.py                           |      0
+ app_logging/security_logger.py                     |     15 [32m+[m
+ backend/api-gateway/main.py                        |      0
+ backend/api-gateway/middleware/authentication.py   |      0
+ backend/api-gateway/middleware/logging.py          |      0
+ backend/api-gateway/middleware/rate_limit.py       |      0
+ backend/api-gateway/routes/agents.py               |      0
+ backend/api-gateway/routes/auth.py                 |      0
+ backend/api-gateway/routes/customer.py             |      0
+ backend/api-gateway/routes/transactions.py         |      0
+ backend/database/connection.py                     |      0
+ backend/database/models/audit.py                   |      0
+ backend/database/models/customer.py                |      0
+ backend/database/models/loan.py                    |      0
+ backend/database/models/transaction.py             |      0
+ docker-compose.yml                                 |      0
+ docs/api/api_documentation.md                      |      0
+ docs/architecture/agent_flow.md                    |      0
+ docs/architecture/governance_design.md             |      0
+ docs/architecture/mcp_architecture.md              |      0
+ docs/architecture/security_model.md                |      0
+ docs/architecture/system_architecture.md           |      0
+ docs/deployment/production_deployment.md           |      0
+ frontend/banking-dashboard/package.json            |      0
+ frontend/banking-dashboard/src/App.jsx             |      0
+ .../src/components/AgentMonitor.jsx                |      0
+ .../banking-dashboard/src/components/AuditLogs.jsx |      0
+ .../src/components/RiskDashboard.jsx               |      0
+ .../src/components/TransactionView.jsx             |      0
+ .../banking-dashboard/src/pages/AdminPanel.jsx     |      0
+ .../banking-dashboard/src/pages/CustomerPortal.jsx |      0
+ .../banking-dashboard/src/pages/EmployeePortal.jsx |      0
+ frontend/banking-dashboard/src/services/api.js     |      0
+ frontend/banking-dashboard/src/store/authStore.js  |      0
+ governance_os/agent_registry/agent_metadata.py     |      0
+ governance_os/agent_registry/identity.py           |      0
+ governance_os/agent_registry/registry.py           |      0
+ governance_os/audit_logger/event_schema.py         |      0
+ governance_os/audit_logger/logger.py               |      0
+ governance_os/budget_controller/cost_tracker.py    |      0
+ governance_os/budget_controller/limits.py          |      0
+ governance_os/emergency_control/kill_switch.py     |      0
+ governance_os/explanation_engine/explain.py        |      0
+ governance_os/explanation_engine/llm_reasoning.py  |      0
+ governance_os/governance_service.py                |      0
+ governance_os/permission_manager/abac.py           |      0
+ governance_os/permission_manager/access_control.py |      0
+ governance_os/permission_manager/rbac.py           |      0
+ governance_os/policy_engine/decision_engine.py     |      0
+ governance_os/policy_engine/policy_loader.py       |      0
+ governance_os/policy_engine/rules.py               |      0
+ governance_os/risk_engine/prediction.py            |      0
+ governance_os/risk_engine/risk_model.py            |      0
+ governance_os/risk_engine/scoring.py               |      0
+ infrastructure/docker/agent.Dockerfile             |      0
+ infrastructure/docker/backend.Dockerfile           |      0
+ infrastructure/docker/ml.Dockerfile                |      0
+ infrastructure/kubernetes/ingress.yaml             |      0
+ logs/08_23_2026_22_27_01.log                       |      0
+ logs/08_23_2026_22_29_04.log                       |      0
+ logs/08_23_2026_22_29_27.log                       |      0
+ logs/08_23_2026_22_29_48.log                       |      0
+ logs/08_23_2026_22_30_46.log                       |      0
+ logs/08_23_2026_22_37_41.log                       |      2 [32m+[m
+ logs/08_23_2026_22_45_30.log                       |      8 [32m+[m
+ logs/08_23_2026_22_56_19.log                       |      8 [32m+[m
+ logs/08_23_2026_22_58_19.log                       |      6 [32m+[m
+ logs/08_23_2026_22_58_26.log                       |      6 [32m+[m
+ logs/08_23_2026_22_58_52.log                       |    724 [32m+[m
+ logs/08_23_2026_23_00_53.log                       |    721 [32m+[m
+ logs/08_23_2026_23_09_56.log                       |    728 [32m+[m
+ logs/08_24_2026_00_03_26.log                       |    728 [32m+[m
+ logs/08_24_2026_00_29_06.log                       |      0
+ logs/08_24_2026_00_32_46.log                       |      0
+ logs/08_24_2026_00_34_55.log                       |    802 [32m+[m
+ logs/08_24_2026_00_39_07.log                       |    802 [32m+[m
+ logs/08_24_2026_00_45_29.log                       |    802 [32m+[m
+ logs/08_24_2026_00_51_06.log                       |      0
+ logs/08_24_2026_00_57_05.log                       |      0
+ mcp/client/mcp_client.py                           |      0
+ mcp/client/tool_manager.py                         |      0
+ mcp/servers/customer_mcp/server.py                 |      0
+ mcp/servers/customer_mcp/tools.py                  |      0
+ mcp/servers/kyc_mcp/server.py                      |      0
+ mcp/servers/kyc_mcp/tools.py                       |      0
+ mcp/servers/loan_mcp/server.py                     |      0
+ mcp/servers/loan_mcp/tools.py                      |      0
+ mcp/servers/transaction_mcp/server.py              |      0
+ mcp/servers/transaction_mcp/tools.py               |      0
+ mcp/verification_layer/identity_check.py           |      0
+ mcp/verification_layer/permission_check.py         |      0
+ mcp/verification_layer/policy_check.py             |      0
+ mcp/verification_layer/risk_check.py               |      0
+ .../fraud/data_ingestion/feature_store.csv         | 284808 [32m++++++++++++++++++[m
+ ml/artifacts/fraud/data_ingestion/test.csv         |  56963 [32m++++[m
+ ml/artifacts/fraud/data_ingestion/train.csv        | 227846 [32m++++++++++++++[m
+ .../fraud/data_transformation/preprocessor.pkl     |    Bin [31m0[m -> [32m3861[m bytes
+ ml/artifacts/fraud/eda/class_distribution.png      |    Bin [31m0[m -> [32m8922[m bytes
+ ml/artifacts/fraud/eda/correlation_heatmap.png     |    Bin [31m0[m -> [32m48561[m bytes
+ ml/artifacts/fraud/eda/dataset_report.json         |     42 [32m+[m
+ ml/artifacts/fraud/feature_store.csv               | 284808 [32m++++++++++++++++++[m
+ .../fraud/model_evaluation/confusion_matrix.png    |     10 [32m+[m
+ ml/artifacts/fraud/model_evaluation/metrics.json   |      9 [32m+[m
+ ml/artifacts/frau

@@ -1,0 +1,23 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: banking_agent_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./mlops/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: banking_agent_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./mlops/monitoring/grafana/dashboard.json:/var/lib/grafana/dashboards/banking_agent_dashboard.json
+    depends_on:
+      - prometheus
